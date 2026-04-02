@@ -42,8 +42,8 @@ The Electron app and the standalone server both expose the same API on `:3000`. 
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) v18 or later
-- Figma desktop app (the plugin requires local network access, which is not available in the browser version)
+- **Figma desktop app** — the plugin requires local network access, which is not available in the browser version
+- **[Node.js](https://nodejs.org/) v18 or later** — only needed for the standalone server (`node server.js`) or building from source. The Electron app bundles its own runtime and requires no separate installation.
 
 ### Option A — Electron Menu Bar App (Recommended for Teams)
 
