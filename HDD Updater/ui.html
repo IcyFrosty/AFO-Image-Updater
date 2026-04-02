@@ -162,6 +162,9 @@
   #status.ok    { color: #1BC47D; font-weight: 500; }
   #status.err   { color: #F24822; font-weight: 500; }
   #status.warn  { color: #F5A623; }
+
+  button.primary-btn.selection-mode { background: #7B61FF; }
+  button.primary-btn.selection-mode:hover:not(:disabled) { background: #6A52E0; }
 </style>
 
 <!-- ============================================================ -->
@@ -204,7 +207,7 @@
         <span class="slider"></span>
       </label>
     </div>
-    <button id="syncBtn" class="primary-btn" disabled>Sync Selected Projects</button>
+    <button id="syncBtn" class="primary-btn" disabled>Sync All Page Images</button>
     <div id="status" class="idle">Ready</div>
   </div>
 </div>
@@ -292,6 +295,7 @@
   let ignoredFolders = 'Animation, Marketing';
   let highlightColor = '#FF00FF';
   let pluginToken = '';
+  let selectionImageCount = 0;
 
   // --- DOM refs ---
   const mainView       = document.getElementById('mainView');
@@ -334,7 +338,7 @@
       const headers = { 'Content-Type': 'application/json' };
       if (pluginToken) headers['x-plugin-token'] = pluginToken;
       const res = await fetch(`${SERVER_URL}/health`, { headers });
-      serverDot.className = res.ok ? 'status-dot ok' : 'status-dot err';
+      serverDot.className = (res.ok || res.status === 401) ? 'status-dot ok' : 'status-dot err';
     } catch {
       serverDot.className = 'status-dot err';
     }
@@ -360,6 +364,14 @@
         body: JSON.stringify({ rootPath }),
       });
 
+      if (res.status === 401) {
+        folderContainer.innerHTML = '<div class="empty-msg"><strong>Token missing or wrong.</strong><br>Open ⚙ Settings → paste the token<br>from the AFO desktop app.</div>';
+        serverDot.className = 'status-dot err';
+        setStatus('Token required — check Settings ⚙', 'err');
+        updateSelectAllBtn();
+        updateSyncBtn();
+        return;
+      }
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
 
       const folders = await res.json();
@@ -429,7 +441,13 @@
   function updateSyncBtn() {
     const anyChecked = document.querySelectorAll('#folderContainer input[type="checkbox"]:checked').length > 0;
     syncBtn.disabled = !anyChecked;
-    // Show a hint in the status bar only when it's already showing an idle/ready message
+    if (selectionImageCount > 0) {
+      syncBtn.textContent = `Sync (${selectionImageCount}) image${selectionImageCount !== 1 ? 's' : ''}`;
+      syncBtn.classList.add('selection-mode');
+    } else {
+      syncBtn.textContent = 'Sync All Page Images';
+      syncBtn.classList.remove('selection-mode');
+    }
     const idleTexts = ['Ready', 'Select a project to sync'];
     if (idleTexts.includes(statusEl.textContent)) {
       setStatus(anyChecked ? 'Ready' : 'Select a project to sync', 'idle');
@@ -510,6 +528,7 @@
       folders: selectedFolders,
       ignoredFolders: ignoredList,
       token: pluginToken,
+      selectionOnly: selectionImageCount > 0,
     }}, '*');
   });
 
@@ -522,6 +541,12 @@
   onmessage = async (event) => {
     const msg = event.data.pluginMessage;
     if (!msg) return;
+
+    // Live selection count from code.ts (fires on load + selectionchange)
+    if (msg.type === 'selection-changed') {
+      selectionImageCount = msg.count;
+      updateSyncBtn();
+    }
 
     // Settings loaded on startup
     if (msg.type === 'settings-loaded') {
@@ -617,8 +642,7 @@
   };
 
   function resetSyncBtn() {
-    syncBtn.textContent = 'Sync Selected Projects';
-    updateSyncBtn(); // re-enables only if something is checked
+    updateSyncBtn(); // sets label + enabled state based on current scope
   }
 
   // --- INIT ---

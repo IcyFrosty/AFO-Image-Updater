@@ -1,5 +1,30 @@
 figma.showUI(__html__, { width: 320, height: 540 });
 
+// --- SELECTION TRACKING ---
+function getSelectionImageCount(): number {
+    let count = 0;
+    for (const node of figma.currentPage.selection) {
+        if ('fills' in node) {
+            const fills = (node as any).fills as Paint[];
+            if (Array.isArray(fills) && fills.some((f: Paint) => f.type === 'IMAGE')) count++;
+        }
+        if ('findAll' in node) {
+            (node as any).findAll((n: SceneNode) => {
+                if ('fills' in n) {
+                    const fills = (n as any).fills as Paint[];
+                    if (Array.isArray(fills) && fills.some((f: Paint) => f.type === 'IMAGE')) count++;
+                }
+                return false;
+            });
+        }
+    }
+    return count;
+}
+
+figma.on('selectionchange', () => {
+    figma.ui.postMessage({ type: 'selection-changed', count: getSelectionImageCount() });
+});
+
 // --- HELPER: hex color string to Figma RGB ---
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
     const h = hex.replace('#', '');
@@ -50,6 +75,7 @@ figma.ui.onmessage = async (msg) => {
             highlightColor: savedColor || '#FF00FF',
             token: savedToken || '',
         });
+        figma.ui.postMessage({ type: 'selection-changed', count: getSelectionImageCount() });
     }
 
     if (msg.type === 'save-settings') {
@@ -66,15 +92,37 @@ figma.ui.onmessage = async (msg) => {
     if (msg.type === 'scan-layers') {
         const imageLayers: { id: string; name: string }[] = [];
 
-        figma.currentPage.findAll(n => {
-            if ('fills' in n && n.name.trim().length > 0) {
-                const fills = (n as any).fills as Paint[];
-                if (Array.isArray(fills) && fills.some((f: Paint) => f.type === 'IMAGE')) {
-                    imageLayers.push({ id: n.id, name: n.name });
+        if (msg.selectionOnly) {
+            for (const sel of figma.currentPage.selection) {
+                if ('fills' in sel && sel.name.trim().length > 0) {
+                    const fills = (sel as any).fills as Paint[];
+                    if (Array.isArray(fills) && fills.some((f: Paint) => f.type === 'IMAGE')) {
+                        imageLayers.push({ id: sel.id, name: sel.name });
+                    }
+                }
+                if ('findAll' in sel) {
+                    (sel as any).findAll((n: SceneNode) => {
+                        if ('fills' in n && n.name.trim().length > 0) {
+                            const fills = (n as any).fills as Paint[];
+                            if (Array.isArray(fills) && fills.some((f: Paint) => f.type === 'IMAGE')) {
+                                imageLayers.push({ id: n.id, name: n.name });
+                            }
+                        }
+                        return false;
+                    });
                 }
             }
-            return false;
-        });
+        } else {
+            figma.currentPage.findAll(n => {
+                if ('fills' in n && n.name.trim().length > 0) {
+                    const fills = (n as any).fills as Paint[];
+                    if (Array.isArray(fills) && fills.some((f: Paint) => f.type === 'IMAGE')) {
+                        imageLayers.push({ id: n.id, name: n.name });
+                    }
+                }
+                return false;
+            });
+        }
 
         figma.ui.postMessage({
             type: 'fetch-images',
