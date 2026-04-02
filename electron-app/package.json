@@ -1,0 +1,49 @@
+{
+  "name": "afo-image-updater",
+  "version": "1.0.0",
+  "description": "AFO Image Updater — menu bar server for the Figma plugin",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:mac": "electron-builder --mac dmg",
+    "build:win": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.afo.image-updater",
+    "productName": "AFO Image Updater",
+    "files": ["main.js", "server.js", "assets/**"],
+    "asar": true,
+
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "assets/icon.icns",
+      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
+
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+
+      "notarize": false
+    },
+
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [{ "target": "nsis", "arch": ["x64"] }]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    }
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "glob": "^13.0.0"
+  },
+  "devDependencies": {
+    "electron": "^35.7.5",
+    "electron-builder": "^25.0.0"
+  }
+}

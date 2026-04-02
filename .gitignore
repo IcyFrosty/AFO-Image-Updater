@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+electron-app/node_modules/
+HDD Updater/node_modules/
+
+# Build output
+electron-app/dist/
+electron-app/build/
+HDD Updater/code.js
+
+# Logs
+*.log
+server_debug.log
+server_robust.log
+server.log
+
+# macOS
+.DS_Store
+
+# Claude Code local settings
+.claude/
+
+# Secrets / tokens
+electron-app/plugin-token.enc
+electron-app/plugin-token.txt
+
+# Lock files (keep package-lock.json but ignore yarn/pnpm)
+yarn.lock
+pnpm-lock.yaml

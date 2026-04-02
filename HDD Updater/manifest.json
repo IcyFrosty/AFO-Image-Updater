@@ -1,0 +1,19 @@
+{
+  "name": "AFO Image Updater",
+  "id": "1578782931324635972",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "documentAccess": "dynamic-page",
+  "editorType": [
+    "figma"
+  ],
+  "ui": "ui.html",
+"networkAccess": {
+    "allowedDomains": [
+      "http://localhost:3000"
+    ],
+    "reasoning": "This plugin connects to a local server to sync images from the user's hard drive."
+  }
+}

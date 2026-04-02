@@ -1,0 +1,60 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 AFO IMAGE UPDATER - INSTALLATION GUIDE\
+=======================================\
+\
+WHAT IS THIS?\
+-------------\
+This tool automatically updates images in your Figma file by matching them \
+to the image files on your local hard drive (Perforce workspace).\
+\
+PREREQUISITES\
+-------------\
+1. Node.js installed (https://nodejs.org/)\
+\
+INSTALLATION (ONE-TIME SETUP)\
+-----------------------------\
+1. Open Terminal.\
+2. Type "cd " (with a space) and drag this folder into the terminal window. Press Enter.\
+3. Type the following command and press Enter:\
+   npm install\
+   \
+   (This downloads the necessary code libraries).\
+\
+HOW TO RUN\
+----------\
+1. Double-click "start_server.command" in this folder. \
+   (A terminal window will open. Minimize it, but keep it open).\
+\
+2. Open Figma.\
+3. Go to Plugins > Development > Import plugin from manifest...\
+4. Select the "manifest.json" file inside this folder.\
+\
+CONFIGURATION\
+-------------\
+1. Run the "AFO Image Updater" plugin in Figma.\
+2. Click the Gear Icon (\uc0\u9881 \u65039 ) in the top right.\
+3. Paste the path to your local Perforce root folder.\
+   (e.g., /Users/YourName/Perforce/ProjectName/)\
+4. Click "Save & Connect".\
+\
+OPTIONAL: RUN AUTOMATICALLY ON STARTUP\
+--------------------------------------\
+To have the server start automatically when you log in:\
+1. Open System Settings (Apple Menu > System Settings).\
+2. Go to General > Login Items.\
+3. Under "Open at Login", click the (+) plus button.\
+4. Navigate to this folder and select "start_server.command".\
+5. Click Open.\
+\
+HOW TO USE\
+----------\
+1. Ensure your Figma layer names match your image filenames exactly (e.g., layer "icon_gold" matches "icon_gold.png").\
+2. Select the projects you want to scan in the plugin list.\
+3. Toggle "Show updated images" if you want to see what changed.\
+4. Click "Sync Selected Projects".}

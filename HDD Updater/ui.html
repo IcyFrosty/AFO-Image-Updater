@@ -1,0 +1,626 @@
+<style>
+  /* --- RESET & BASE --- */
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 11px; color: #333;
+    display: flex; flex-direction: column;
+    padding: 16px; background: #fff;
+  }
+
+  /* --- HEADER --- */
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px; flex-shrink: 0;
+  }
+  .header-left { display: flex; align-items: center; gap: 6px; }
+  h3 { margin: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #888; }
+
+  /* Server status dot */
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: #ccc;
+    flex-shrink: 0; transition: background 0.3s;
+  }
+  .status-dot.ok  { background: #1BC47D; }
+  .status-dot.err { background: #F24822; }
+
+  .icon-btn {
+    background: none; border: none; cursor: pointer; color: #888; padding: 4px;
+    border-radius: 4px; transition: 0.2s; display: flex; align-items: center;
+  }
+  .icon-btn:hover { background: #f0f0f0; color: #333; }
+  .icon svg { width: 16px; height: 16px; fill: currentColor; }
+
+  /* --- VIEW CONTAINER --- */
+  .view { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; height: 100%; }
+  .hidden { display: none !important; }
+
+  /* --- TOOLBAR (filter + select all) --- */
+  .toolbar {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 6px; flex-shrink: 0;
+  }
+  .filter-input {
+    flex-grow: 1; padding: 5px 8px; border: 1px solid #E5E5E5;
+    border-radius: 5px; font-size: 11px; color: #333; outline: none;
+  }
+  .filter-input:focus { border-color: #18A0FB; }
+  .select-all-btn {
+    background: none; border: none; cursor: pointer; color: #18A0FB;
+    font-size: 11px; font-weight: 500; padding: 4px 2px; white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .select-all-btn:hover { text-decoration: underline; }
+
+  /* --- FOLDER LIST --- */
+  .folder-list {
+    flex-grow: 1; overflow-y: auto; min-height: 0;
+    border: 1px solid #E5E5E5; border-radius: 6px;
+    padding: 4px 2px; margin-bottom: 12px;
+  }
+  .folder-list::-webkit-scrollbar { width: 10px; }
+  .folder-list::-webkit-scrollbar-track { background: transparent; }
+  .folder-list::-webkit-scrollbar-thumb {
+    background-color: #C1C1C1; border-radius: 5px; border: 2px solid #fff;
+  }
+  .folder-list::-webkit-scrollbar-thumb:hover { background-color: #999; }
+
+  .checkbox-item {
+    display: flex; align-items: center;
+    padding: 3px 6px; border-radius: 4px;
+  }
+  .checkbox-item:hover { background: #F5F5F5; }
+  .checkbox-item input { margin-right: 8px; flex-shrink: 0; }
+  .checkbox-item label {
+    cursor: pointer; width: 100%; user-select: none;
+    font-size: 11px; line-height: 1.4;
+  }
+  .checkbox-item.hidden-item { display: none; }
+
+  .empty-msg { padding: 20px; text-align: center; color: #999; line-height: 1.5; }
+
+  /* --- SETTINGS SCREEN --- */
+  .settings-body { flex-grow: 1; overflow-y: auto; padding-right: 2px; }
+  .input-group { margin-bottom: 14px; }
+  .input-label { display: block; font-weight: 600; margin-bottom: 5px; }
+  .input-label .tooltip-anchor {
+    display: inline-flex; align-items: center; margin-left: 4px;
+    color: #aaa; cursor: default; position: relative;
+  }
+  .input-label .tooltip-anchor:hover .tooltip-text { display: block; }
+  .tooltip-text {
+    display: none; position: absolute; left: 18px; top: -4px;
+    background: #333; color: #fff; font-size: 10px; font-weight: 400;
+    padding: 4px 8px; border-radius: 4px; white-space: nowrap; z-index: 10;
+    pointer-events: none;
+  }
+  input[type="text"] {
+    width: 100%; padding: 9px 10px; border: 1px solid #ccc;
+    border-radius: 6px; font-size: 12px; outline: none;
+  }
+  input[type="text"]:focus { border-color: #18A0FB; }
+  input[type="text"].input-error { border-color: #F24822; }
+  .hint { color: #888; margin-top: 5px; line-height: 1.5; font-size: 10px; }
+  .input-feedback { font-size: 10px; margin-top: 4px; min-height: 14px; }
+  .input-feedback.ok  { color: #1BC47D; }
+  .input-feedback.err { color: #F24822; }
+
+  /* Color row */
+  .color-row { display: flex; align-items: center; gap: 10px; }
+  input[type="color"] {
+    width: 36px; height: 36px; padding: 2px; border: 1px solid #ccc;
+    border-radius: 6px; cursor: pointer; background: none;
+  }
+  .color-label-secondary { font-size: 10px; color: #888; }
+
+  /* --- FOOTER --- */
+  .footer { flex-shrink: 0; border-top: 1px solid #F0F0F0; padding-top: 10px; }
+
+  /* Toggle row with tooltip */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .toggle-label {
+    font-size: 12px; font-weight: 500; color: #333;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .toggle-label .tooltip-anchor { color: #bbb; cursor: default; position: relative; }
+  .toggle-label .tooltip-anchor:hover .tooltip-text { display: block; }
+  .switch { position: relative; display: inline-block; width: 32px; height: 18px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: #ccc; transition: .3s; border-radius: 18px;
+  }
+  .slider:before {
+    position: absolute; content: ""; height: 14px; width: 14px;
+    left: 2px; bottom: 2px; background: white; transition: .3s; border-radius: 50%;
+  }
+  input:checked + .slider { background: #18A0FB; }
+  input:checked + .slider:before { transform: translateX(14px); }
+
+  /* Primary / secondary buttons */
+  button.primary-btn {
+    width: 100%; padding: 11px; background: #18A0FB; color: white;
+    border: none; border-radius: 6px; font-weight: 600; font-size: 13px;
+    cursor: pointer; transition: background 0.15s; position: relative;
+  }
+  button.primary-btn:hover:not(:disabled) { background: #0D8DE3; }
+  button.primary-btn:disabled { background: #B3D9FD; cursor: not-allowed; }
+  button.secondary-btn {
+    width: 100%; padding: 10px; background: white; border: 1px solid #ccc;
+    color: #333; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 8px;
+  }
+  button.secondary-btn:hover { background: #f5f5f5; }
+
+  /* Status bar */
+  #status {
+    font-size: 11px; text-align: center; margin-top: 10px;
+    min-height: 16px; transition: color 0.2s;
+  }
+  #status.idle  { color: #aaa; }
+  #status.info  { color: #888; }
+  #status.ok    { color: #1BC47D; font-weight: 500; }
+  #status.err   { color: #F24822; font-weight: 500; }
+  #status.warn  { color: #F5A623; }
+</style>
+
+<!-- ============================================================ -->
+<!--  MAIN VIEW                                                   -->
+<!-- ============================================================ -->
+<div id="mainView" class="view">
+  <div class="header">
+    <div class="header-left">
+      <div id="serverDot" class="status-dot" title="Server status"></div>
+      <h3>AFO Image Updater</h3>
+    </div>
+    <button id="settingsBtn" class="icon-btn" title="Settings">
+      <span class="icon">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      </span>
+    </button>
+  </div>
+
+  <!-- Filter + Select All toolbar -->
+  <div class="toolbar">
+    <input id="filterInput" class="filter-input" type="text" placeholder="Filter projects…">
+    <button id="selectAllBtn" class="select-all-btn">Select All</button>
+  </div>
+
+  <div class="folder-list" id="folderContainer">
+    <div class="empty-msg">Loading…</div>
+  </div>
+
+  <div class="footer">
+    <div class="toggle-row">
+      <span class="toggle-label">
+        Highlight updated layers
+        <span class="tooltip-anchor">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0 3.5c.4 0 .75.3.75.7v3.5a.75.75 0 0 1-1.5 0V8.2c0-.4.34-.7.75-.7z"/></svg>
+          <span class="tooltip-text">Adds a colored border to updated layers so you can see what changed</span>
+        </span>
+      </span>
+      <label class="switch">
+        <input type="checkbox" id="highlightToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <button id="syncBtn" class="primary-btn" disabled>Sync Selected Projects</button>
+    <div id="status" class="idle">Ready</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SETTINGS VIEW                                               -->
+<!-- ============================================================ -->
+<div id="settingsView" class="view hidden">
+  <div class="header">
+    <div class="header-left">
+      <button id="backBtn" class="icon-btn" title="Back" style="margin-right:2px">
+        <span class="icon">
+          <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        </span>
+      </button>
+      <h3>Configuration</h3>
+    </div>
+  </div>
+
+  <div class="settings-body">
+
+    <!-- Root folder -->
+    <div class="input-group">
+      <label class="input-label">Projects Root Folder</label>
+      <input type="text" id="rootPathInput" placeholder="/Users/name/Projects/…">
+      <div class="input-feedback" id="pathFeedback"></div>
+      <div class="hint">
+        Paste the full path to your main projects folder.<br>
+        <strong>Mac tip:</strong> In Finder, right-click the folder → hold Option → "Copy as Pathname".
+      </div>
+    </div>
+
+    <!-- Ignored folders -->
+    <div class="input-group">
+      <label class="input-label">
+        Ignored Folders
+        <span class="tooltip-anchor">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0 3.5c.4 0 .75.3.75.7v3.5a.75.75 0 0 1-1.5 0V8.2c0-.4.34-.7.75-.7z"/></svg>
+          <span class="tooltip-text">Folder names to skip when searching for images</span>
+        </span>
+      </label>
+      <input type="text" id="ignoredFoldersInput" placeholder="Animation, Marketing, Video">
+      <div class="hint">
+        Comma-separated folder names. Images inside these folders are never loaded.<br>
+        Each team member can set their own list.
+      </div>
+    </div>
+
+    <!-- Highlight color -->
+    <div class="input-group">
+      <label class="input-label">Highlight Color</label>
+      <div class="color-row">
+        <input type="color" id="highlightColorInput" value="#FF00FF">
+        <span class="color-label-secondary">Border color applied to updated layers</span>
+      </div>
+    </div>
+
+    <!-- Security token -->
+    <div class="input-group">
+      <label class="input-label">
+        Security Token
+        <span class="tooltip-anchor">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0 3.5c.4 0 .75.3.75.7v3.5a.75.75 0 0 1-1.5 0V8.2c0-.4.34-.7.75-.7z"/></svg>
+          <span class="tooltip-text">Only required when using the desktop app. Leave blank for standalone server.</span>
+        </span>
+      </label>
+      <input type="text" id="tokenInput" placeholder="Paste token from the desktop app (optional)">
+      <div class="hint">
+        Open the AFO Image Updater menu bar app → "Show Setup Token" → paste here.
+      </div>
+    </div>
+
+  </div><!-- end settings-body -->
+
+  <div class="footer">
+    <button id="saveSettingsBtn" class="primary-btn">Save & Connect</button>
+  </div>
+</div>
+
+<script>
+  const SERVER_URL = 'http://localhost:3000';
+
+  // In-memory settings (loaded from clientStorage via code.ts on startup)
+  let rootPath = '';
+  let ignoredFolders = 'Animation, Marketing';
+  let highlightColor = '#FF00FF';
+  let pluginToken = '';
+
+  // --- DOM refs ---
+  const mainView       = document.getElementById('mainView');
+  const settingsView   = document.getElementById('settingsView');
+  const folderContainer = document.getElementById('folderContainer');
+  const syncBtn        = document.getElementById('syncBtn');
+  const statusEl       = document.getElementById('status');
+  const filterInput    = document.getElementById('filterInput');
+  const selectAllBtn   = document.getElementById('selectAllBtn');
+  const serverDot      = document.getElementById('serverDot');
+
+  // --- NAVIGATION ---
+  function showSettings() {
+    mainView.classList.add('hidden');
+    settingsView.classList.remove('hidden');
+    document.getElementById('rootPathInput').value = rootPath;
+    document.getElementById('ignoredFoldersInput').value = ignoredFolders;
+    document.getElementById('highlightColorInput').value = highlightColor;
+    document.getElementById('tokenInput').value = pluginToken;
+    document.getElementById('pathFeedback').textContent = '';
+  }
+
+  function showMain() {
+    settingsView.classList.add('hidden');
+    mainView.classList.remove('hidden');
+  }
+
+  document.getElementById('settingsBtn').onclick = showSettings;
+  document.getElementById('backBtn').onclick = showMain;
+
+  // --- STATUS HELPERS ---
+  function setStatus(text, type = 'info') {
+    statusEl.textContent = text;
+    statusEl.className = type; // idle | info | ok | err | warn
+  }
+
+  // --- SERVER CONNECTION CHECK ---
+  async function checkServer() {
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (pluginToken) headers['x-plugin-token'] = pluginToken;
+      const res = await fetch(`${SERVER_URL}/health`, { headers });
+      serverDot.className = res.ok ? 'status-dot ok' : 'status-dot err';
+    } catch {
+      serverDot.className = 'status-dot err';
+    }
+  }
+
+  // --- LOAD FOLDERS ---
+  async function loadFolders() {
+    if (!rootPath) {
+      folderContainer.innerHTML = '<div class="empty-msg">No path configured.<br>Click the gear icon to set up.</div>';
+      updateSelectAllBtn();
+      updateSyncBtn();
+      return;
+    }
+
+    folderContainer.innerHTML = '<div class="empty-msg">Loading…</div>';
+
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (pluginToken) headers['x-plugin-token'] = pluginToken;
+      const res = await fetch(`${SERVER_URL}/get-folders`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ rootPath }),
+      });
+
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+
+      const folders = await res.json();
+      folderContainer.innerHTML = '';
+
+      if (folders.length === 0) {
+        folderContainer.innerHTML = '<div class="empty-msg">No subfolders found.<br>Check path in settings.</div>';
+        updateSelectAllBtn();
+        updateSyncBtn();
+        return;
+      }
+
+      folders.forEach(folder => {
+        const div = document.createElement('div');
+        div.className = 'checkbox-item';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = folder;
+        cb.id = 'chk_' + folder;
+        cb.addEventListener('change', () => { updateSyncBtn(); updateSelectAllBtn(); });
+        const lbl = document.createElement('label');
+        lbl.htmlFor = 'chk_' + folder;
+        lbl.textContent = folder;
+        div.appendChild(cb);
+        div.appendChild(lbl);
+        folderContainer.appendChild(div);
+      });
+
+      updateSelectAllBtn();
+      updateSyncBtn();
+      setStatus('Ready', 'idle');
+      serverDot.className = 'status-dot ok';
+
+    } catch {
+      folderContainer.innerHTML = '<div class="empty-msg">Cannot reach server.<br>Open the AFO Image Updater app<br>or run <strong>node server.js</strong>.</div>';
+      serverDot.className = 'status-dot err';
+    }
+  }
+
+  // --- FILTER ---
+  filterInput.addEventListener('input', () => {
+    const query = filterInput.value.toLowerCase().trim();
+    document.querySelectorAll('#folderContainer .checkbox-item').forEach(item => {
+      const label = item.querySelector('label');
+      const match = !query || label.textContent.toLowerCase().includes(query);
+      item.classList.toggle('hidden-item', !match);
+    });
+    updateSelectAllBtn();
+  });
+
+  // --- SELECT ALL / NONE ---
+  function updateSelectAllBtn() {
+    const visible = Array.from(document.querySelectorAll('#folderContainer .checkbox-item:not(.hidden-item) input'));
+    const allChecked = visible.length > 0 && visible.every(cb => cb.checked);
+    selectAllBtn.textContent = allChecked ? 'Deselect All' : 'Select All';
+  }
+
+  selectAllBtn.addEventListener('click', () => {
+    const visible = document.querySelectorAll('#folderContainer .checkbox-item:not(.hidden-item) input');
+    const allChecked = Array.from(visible).every(cb => cb.checked);
+    visible.forEach(cb => { cb.checked = !allChecked; });
+    updateSyncBtn();
+    updateSelectAllBtn();
+  });
+
+  // --- SYNC BUTTON STATE ---
+  function updateSyncBtn() {
+    const anyChecked = document.querySelectorAll('#folderContainer input[type="checkbox"]:checked').length > 0;
+    syncBtn.disabled = !anyChecked;
+    // Show a hint in the status bar only when it's already showing an idle/ready message
+    const idleTexts = ['Ready', 'Select a project to sync'];
+    if (idleTexts.includes(statusEl.textContent)) {
+      setStatus(anyChecked ? 'Ready' : 'Select a project to sync', 'idle');
+    }
+  }
+
+  // --- SETTINGS: save ---
+  document.getElementById('saveSettingsBtn').onclick = async () => {
+    const newPath    = document.getElementById('rootPathInput').value.trim();
+    const newIgnored = document.getElementById('ignoredFoldersInput').value.trim();
+    const newColor   = document.getElementById('highlightColorInput').value;
+    const newToken   = document.getElementById('tokenInput').value.trim();
+    const feedback   = document.getElementById('pathFeedback');
+    const saveBtn    = document.getElementById('saveSettingsBtn');
+
+    if (!newPath) {
+      feedback.textContent = 'Path is required.';
+      feedback.className = 'input-feedback err';
+      return;
+    }
+
+    saveBtn.textContent = 'Validating…';
+    saveBtn.disabled = true;
+    feedback.textContent = '';
+
+    // Validate path by pinging server
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (newToken) headers['x-plugin-token'] = newToken;
+      const res = await fetch(`${SERVER_URL}/get-folders`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ rootPath: newPath }),
+      });
+      if (!res.ok) throw new Error();
+      feedback.textContent = '✓ Path is valid';
+      feedback.className = 'input-feedback ok';
+    } catch {
+      feedback.textContent = 'Could not reach server or path is invalid.';
+      feedback.className = 'input-feedback err';
+      saveBtn.textContent = 'Save & Connect';
+      saveBtn.disabled = false;
+      return;
+    }
+
+    // Persist
+    rootPath      = newPath;
+    ignoredFolders = newIgnored;
+    highlightColor = newColor;
+    pluginToken   = newToken;
+    parent.postMessage({ pluginMessage: {
+      type: 'save-settings',
+      path: rootPath,
+      ignoredFolders,
+      highlightColor,
+      token: pluginToken,
+    }}, '*');
+
+    saveBtn.textContent = 'Save & Connect';
+    saveBtn.disabled = false;
+    showMain();
+    loadFolders();
+  };
+
+  // --- SYNC BUTTON ---
+  syncBtn.addEventListener('click', () => {
+    const checked = document.querySelectorAll('#folderContainer input[type="checkbox"]:checked');
+    const selectedFolders = Array.from(checked).map(cb => cb.value);
+    const ignoredList = ignoredFolders.split(',').map(s => s.trim()).filter(Boolean);
+
+    setStatus('Scanning layers…', 'info');
+    syncBtn.disabled = true;
+    syncBtn.textContent = 'Scanning…';
+
+    // Pass all needed data now — avoids stale closure variables in async callbacks
+    parent.postMessage({ pluginMessage: {
+      type: 'scan-layers',
+      folders: selectedFolders,
+      ignoredFolders: ignoredList,
+      token: pluginToken,
+    }}, '*');
+  });
+
+  // --- HIGHLIGHT TOGGLE ---
+  document.getElementById('highlightToggle').addEventListener('change', e => {
+    parent.postMessage({ pluginMessage: { type: 'toggle-highlights', show: e.target.checked }}, '*');
+  });
+
+  // --- MESSAGES FROM code.ts ---
+  onmessage = async (event) => {
+    const msg = event.data.pluginMessage;
+    if (!msg) return;
+
+    // Settings loaded on startup
+    if (msg.type === 'settings-loaded') {
+      rootPath      = msg.path || '';
+      ignoredFolders = msg.ignoredFolders ?? 'Animation, Marketing';
+      highlightColor = msg.highlightColor || '#FF00FF';
+      pluginToken   = msg.token || '';
+      await checkServer();
+      loadFolders();
+    }
+
+    // code.ts sends back scan results — now fetch images from server
+    if (msg.type === 'fetch-images') {
+      const showHighlights = document.getElementById('highlightToggle').checked;
+
+      if (!msg.names || msg.names.length === 0) {
+        setStatus('No image layers found on this page.', 'warn');
+        resetSyncBtn();
+        return;
+      }
+
+      // Build name → [id, id, ...] map from the scanned layer list.
+      // This lets update-layers use getNodeById (O(1)) instead of findAll per name.
+      const nodeIds = {};
+      (msg.layers || []).forEach(({ id, name }) => {
+        if (!nodeIds[name]) nodeIds[name] = [];
+        nodeIds[name].push(id);
+      });
+
+      setStatus(`Found ${msg.names.length} image layer(s). Fetching…`, 'info');
+
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (msg.token) headers['x-plugin-token'] = msg.token;
+
+        const response = await fetch(`${SERVER_URL}/find-images`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            rootPath,
+            names: msg.names,
+            folders: msg.folders,
+            ignoredFolders: msg.ignoredFolders,
+          }),
+        });
+
+        // Check HTTP status before parsing
+        if (!response.ok) throw new Error(`Server error ${response.status}`);
+
+        const imageData = await response.json();
+        const matchCount = Object.keys(imageData).length;
+
+        if (matchCount === 0) {
+          setStatus('No matching files found.', 'warn');
+          resetSyncBtn();
+          return;
+        }
+
+        setStatus(`Updating ${matchCount} layer(s)…`, 'info');
+
+        // Convert base64 → Uint8Array
+        const processedData = {};
+        for (const [name, b64] of Object.entries(imageData)) {
+          const parts = b64.split(',');
+          if (parts.length < 2) continue;
+          const raw = atob(parts[1]);
+          const arr = new Uint8Array(raw.length);
+          for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+          processedData[name] = arr;
+        }
+
+        parent.postMessage({ pluginMessage: {
+          type: 'update-layers',
+          data: processedData,
+          nodeIds,          // precise node IDs — no findAll needed in code.ts
+          showHighlights,
+          highlightColor,
+        }}, '*');
+
+      } catch (err) {
+        setStatus('Server error. Is the app running?', 'err');
+        console.error(err);
+        resetSyncBtn();
+      }
+    }
+
+    // Update complete
+    if (msg.type === 'complete') {
+      const type = msg.errorCount > 0 ? 'warn' : 'ok';
+      setStatus(msg.message, type);
+      resetSyncBtn();
+    }
+  };
+
+  function resetSyncBtn() {
+    syncBtn.textContent = 'Sync Selected Projects';
+    updateSyncBtn(); // re-enables only if something is checked
+  }
+
+  // --- INIT ---
+  parent.postMessage({ pluginMessage: { type: 'load-settings' } }, '*');
+</script>
