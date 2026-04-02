@@ -647,4 +647,5 @@
 
   // --- INIT ---
   parent.postMessage({ pluginMessage: { type: 'load-settings' } }, '*');
+  setInterval(checkServer, 10000); // keep status dot in sync with actual server state
 </script>
