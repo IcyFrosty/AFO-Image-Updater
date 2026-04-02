@@ -74,6 +74,25 @@ The server runs on `http://localhost:3000`. Leave the **Security Token** field b
 
 To make startup easier on macOS, double-click `start_server.command` in the project root.
 
+**Auto-start on login (macOS):**
+
+1. Go to **System Settings → General → Login Items**
+2. Click the **(+)** button
+3. Select `start_server.command` from the tool folder
+
+The server will now launch automatically on every login.
+
+<details>
+<summary>To remove auto-start</summary>
+
+1. Go to **System Settings → General → Login Items**
+2. Find **start_server.command** in the list
+3. Select it and click the **(–)** button
+
+The server will no longer launch automatically. You can still start it manually by double-clicking `start_server.command`.
+
+</details>
+
 ---
 
 ## Plugin Setup
