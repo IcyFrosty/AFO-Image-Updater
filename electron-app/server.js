@@ -89,7 +89,7 @@ app.post('/find-images', (req, res) => {
     const requestedLayerNames = req.body.names || [];
     const selectedFolders = req.body.folders || [];
     const ignoredFolders = (req.body.ignoredFolders || [])
-        .filter(f => typeof f === 'string' && f.length > 0 && !/[/\\]/.test(f));
+        .filter(f => typeof f === 'string' && f.length > 0 && !/[/\\*?{}[\]!]/.test(f));
 
     if (!rootPath || !fs.existsSync(rootPath)) {
         return res.status(400).json({ error: 'Invalid path' });
@@ -113,9 +113,13 @@ app.post('/find-images', (req, res) => {
             const parsed = path.parse(filePath);
             [parsed.name, parsed.base].forEach(key => {
                 if (fileMap[key]) {
-                    const em = fs.statSync(fileMap[key]).mtime;
-                    const nm = fs.statSync(filePath).mtime;
-                    if (nm > em) fileMap[key] = filePath;
+                    try {
+                        const em = fs.statSync(fileMap[key]).mtime;
+                        const nm = fs.statSync(filePath).mtime;
+                        if (nm > em) fileMap[key] = filePath;
+                    } catch {
+                        // File was deleted or became inaccessible between glob and stat — skip
+                    }
                 } else {
                     fileMap[key] = filePath;
                 }
@@ -124,7 +128,13 @@ app.post('/find-images', (req, res) => {
 
         const responseData = {};
         requestedLayerNames.forEach(name => {
-            if (fileMap[name]) responseData[name] = getBase64(fileMap[name]);
+            if (fileMap[name]) {
+                try {
+                    responseData[name] = getBase64(fileMap[name]);
+                } catch {
+                    console.warn('[find-images] Could not read file:', fileMap[name]);
+                }
+            }
         });
 
         res.json(responseData);

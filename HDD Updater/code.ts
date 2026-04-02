@@ -28,6 +28,7 @@ figma.on('selectionchange', () => {
 // --- HELPER: hex color string to Figma RGB ---
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
     const h = hex.replace('#', '');
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) return { r: 1, g: 0, b: 1 }; // fallback to magenta
     return {
         r: parseInt(h.substring(0, 2), 16) / 255,
         g: parseInt(h.substring(2, 4), 16) / 255,
